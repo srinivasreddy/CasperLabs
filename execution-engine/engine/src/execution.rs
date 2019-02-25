@@ -864,6 +864,19 @@ fn create_rng(account_addr: &[u8; 20], timestamp: i64, nonce: i64) -> ChaChaRng 
     ChaChaRng::from_seed(seed)
 }
 
+#[macro_export]
+macro_rules! on_fail_charge {
+    ($fn:expr, $cost:expr) => {
+        match $fn {
+            Ok(res) => res,
+            Err(er) => {
+                let lambda = || $cost;
+                return (Err(er.into()), lambda());
+            }
+        }
+    };
+}
+
 pub fn exec<R: DbReader>(
     parity_module: Module,
     account_addr: [u8; 20],
@@ -871,10 +884,10 @@ pub fn exec<R: DbReader>(
     nonce: i64,
     gas_limit: &u64,
     tc: &mut TrackingCopy<R>,
-) -> Result<(ExecutionEffect, u64), Error> {
-    let (instance, memory) = instance_and_memory(parity_module.clone())?;
+) -> (Result<ExecutionEffect, Error>, u64) {
+    let (instance, memory) = on_fail_charge!(instance_and_memory(parity_module.clone()), 0);
     let acct_key = Key::Account(account_addr);
-    let value = tc.get(&acct_key)?;
+    let value = on_fail_charge!(tc.get(&acct_key), 0);
     let account = value.as_account();
     let mut known_urefs: HashSet<Key> = HashSet::new();
     for r in account.urefs_lookup().values() {
@@ -899,7 +912,10 @@ pub fn exec<R: DbReader>(
         },
         rng: rng,
     };
-    let _ = instance.invoke_export("call", &[], &mut runtime)?;
+    let _ = on_fail_charge!(
+        instance.invoke_export("call", &[], &mut runtime),
+        runtime.gas_counter
+    );
 
-    Ok((runtime.effect(), runtime.gas_counter))
+    (Ok(runtime.effect()), runtime.gas_counter)
 }
