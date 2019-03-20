@@ -1,3 +1,4 @@
+import os
 import contextlib
 
 import pytest
@@ -54,6 +55,7 @@ def started_bonded_validator(context: TestingContext, bootstrap_node: Node):
     with started_peer(
         context=context,
         network=bootstrap_node.network,
+        socket_volume="helloworld",
         name='bonded-validator',
         bootstrap=bootstrap_node,
         key_pair=BONDED_VALIDATOR_KEYS,
@@ -67,6 +69,7 @@ def started_joining_validator(context: TestingContext, bootstrap_node: Node):
     with started_peer(
         context=context,
         network=bootstrap_node.network,
+        socket_volume="helloworld",
         name='joining-validator',
         bootstrap=bootstrap_node,
         key_pair=JOINING_VALIDATOR_KEYS,
@@ -81,6 +84,7 @@ def started_readonly_peer(context: TestingContext, bootstrap_node: Node):
     with started_peer(
         context=context,
         network=bootstrap_node.network,
+        socket_volume="helloworld",
         name='unbonded-validator',
         bootstrap=bootstrap_node,
         key_pair=UNBONDED_VALIDATOR_KEYS,
@@ -90,16 +94,16 @@ def started_readonly_peer(context: TestingContext, bootstrap_node: Node):
 
 
 
-@pytest.mark.xfail
 def test_heterogenous_validators(command_line_options_fixture, docker_client_fixture):
     BONDED_VALIDATOR_BLOCKS = 10
     JOINING_VALIDATOR_BLOCKS = 10
+
     with conftest.testing_context(command_line_options_fixture, docker_client_fixture, bootstrap_keypair=BOOTSTRAP_NODE_KEYS, peers_keypairs=[BONDED_VALIDATOR_KEYS]) as context:
         with docker_network_with_started_bootstrap(context=context) as bootstrap_node:
             with started_bonded_validator(context, bootstrap_node) as bonded_validator:
-                contract_path = '/opt/docker/examples/hello_world_again.rho'
+                contract_path = os.path.join('/tmp/resources/helloname.wasm')
                 for _ in range(BONDED_VALIDATOR_BLOCKS):
-                    bonded_validator.deploy(contract_path)
+                    bonded_validator.deploy(contract_path, contract_path)
                     bonded_validator.propose()
 
                 with started_joining_validator(context, bootstrap_node) as joining_validator:
@@ -120,7 +124,7 @@ def test_heterogenous_validators(command_line_options_fixture, docker_client_fix
 
                     with started_readonly_peer(context, bootstrap_node) as readonly_peer:
                         # Force sync with the network
-                        joining_validator.deploy(contract_path)
+                        joining_validator.deploy(contract_path, contract_path)
                         joining_validator.propose()
                         expected_blocks_count = BONDED_VALIDATOR_BLOCKS + JOINING_VALIDATOR_BLOCKS
                         max_retrieved_blocks = 30
