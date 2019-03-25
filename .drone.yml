@@ -123,6 +123,7 @@ pipeline:
 
   run-integration-tests:
     <<: *sbtenv
+    err_ignore: true
     commands:
       - python3 -m pip install pipenv dataclasses typing_extensions
       - cd integration-testing
