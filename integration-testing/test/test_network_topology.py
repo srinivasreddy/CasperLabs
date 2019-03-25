@@ -30,7 +30,6 @@ def start_network(*, context: TestingContext, bootstrap: 'Node', allowed_peers=N
         docker_client=context.docker,
         bootstrap=bootstrap,
         network=bootstrap.network,
-        bonds_file=context.bonds_file,
         key_pairs=context.peers_keypairs,
         command_timeout=context.command_timeout,
         allowed_peers=allowed_peers,
@@ -75,7 +74,7 @@ def test_metrics_api_socket(command_line_options_fixture, docker_client_fixture)
 def deploy_block(node, contract_name):
     local_contract_file_path = os.path.join('resources', contract_name)
     shutil.copyfile(local_contract_file_path, f"{node.local_deploy_dir}/{contract_name}")
-    deploy_output = node.deploy(contract_name, contract_name)
+    deploy_output = node.deploy()
     assert deploy_output.strip() == "Success!"
     logging.info(f"The deployed output is : {deploy_output}")
     block_hash_output_string = node.propose()

@@ -240,7 +240,7 @@ class Node:
         try:
             logging.info("COMMAND {}".format(command))
             output = self.docker_client.containers.run(
-                image="casperlabs/client:{}".format(TAG),
+                image="casperlabs/client:latest",
                 auto_remove=True,
                 name="client-{}-latest".format(
                     ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(5)),
