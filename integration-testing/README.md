@@ -2,7 +2,7 @@
 
 ## Step 1. Install Docker
 
-Follow the instructions on [this page](https://docs.docker.com/install/) for platform specific instalation steps
+Follow the instructions on [this page](https://docs.docker.com/install/) for platform specific installation steps
 
 ## Step 2. Python v3.6+
 
@@ -14,7 +14,7 @@ You can test the version of your default python installed on your machine:
 $ python3 --version
 ```
 
-If your version is lower than 3.6 you will need to install Python 3.
+If your version is lower than 3.6 you will need to install Python 3.6+.
 
 ### macOS
 
@@ -52,7 +52,7 @@ $ pipenv sync
 Tests use CasperLabs Node Docker image. If environment variable `${DRONE_BUILD_NUMBER}` is
 defined, then `casperlabs/node:DRONE-${DRONE_BUILD_NUMBER}` image is used.
 These are created on Drone CI in order to use have image per build. If the
-variable is undefined, `casperlabs/node:latest` is used.
+variable is undefined, `casperlabs/node:test` is used.
 
 When the tests are run against the current source code one should build the
 docker image and publish it locally. For details see [the developer
