@@ -20,7 +20,7 @@ from casperlabsnode_testing.common import (
     make_tempdir,
     random_string,
 )
-from casperlabsnode_testing.wait import wait_for_node_started
+from casperlabsnode_testing.wait import wait_for_node_started, wait_for_approved_block_received_handler_state
 
 
 if TYPE_CHECKING:
@@ -545,6 +545,27 @@ def make_peer(
         mem_limit=mem_limit if not None else '4G',
     )
     return container
+
+
+@contextlib.contextmanager
+def bootstrap_connected_peer(
+    *,
+    context: TestingContext,
+    bootstrap: Node,
+    name: str,
+    keypair: "KeyPair",
+    socket_volume: str
+) -> Generator[Node, None, None]:
+    with started_peer(
+        context=context,
+        network=bootstrap.network,
+        socket_volume=socket_volume,
+        name=name,
+        bootstrap=bootstrap,
+        key_pair=keypair
+    ) as peer:
+        wait_for_approved_block_received_handler_state(peer, context.node_startup_timeout)
+        yield peer
 
 
 @contextlib.contextmanager
