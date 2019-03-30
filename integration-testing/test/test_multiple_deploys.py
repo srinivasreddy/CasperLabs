@@ -25,6 +25,7 @@ class DeployThread(threading.Thread):
     def run(self) -> None:
         for _ in range(self.count):
             self.node.deploy()
+            import time; time.sleep(60)
             self.node.propose()
 
 
@@ -76,20 +77,21 @@ def test_multiple_deploys_at_once(command_line_options_fixture, docker_client_fi
                         wait_for_blocks_count_at_least(
                             no1,
                             expected_blocks_count,
-                            4,
+                            3,
                             context.node_startup_timeout
                         )
                         wait_for_blocks_count_at_least(
                             no2,
                             expected_blocks_count,
-                            4,
+                            3,
                             context.node_startup_timeout
                         )
                         wait_for_blocks_count_at_least(
                             no3,
                             expected_blocks_count,
-                            4,
+                            3,
                             context.node_startup_timeout
                         )
+
             for v in (volume_name1, volume_name2, volume_name3):
                 docker_client_fixture.volumes.get(v).remove(force=True)
