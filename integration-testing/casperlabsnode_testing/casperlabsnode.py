@@ -526,8 +526,8 @@ def visualiza_dag(
 
     volumes = {
         directory_path: {
-            "mode":"rw",
-            "bind" : "/data"
+            "mode": "rw",
+            "bind": "/data"
         }
     }
     container = docker_client.containers.run(
