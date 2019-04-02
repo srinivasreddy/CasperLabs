@@ -510,22 +510,26 @@ def visualiza_dag(
     docker_client: "DockerClient",
     network: str,
     host_name: str,
-    command: str,
     depth: int,
     directory_path: str,
     image: str = DEFAULT_CLIENT_IMAGE,
 ):
     name = make_vdag_name(network, host_name)
     command = " ".join([
-        host_name,
-        "vdag",
-        directory_path,
-        "--show-justification-lines",
-        "--depth",
-        depth,
-        "--out /data/sample.png",
-        "--stream multiple-outputs"
+        "--host", host_name,
+        "--port", "40401",
+        "vdag", "--show-justification-lines",
+        "--depth", str(depth),
+        "--out", "/data/sample.png",
+        "--stream", "multiple-outputs"
     ])
+
+    volumes = {
+        directory_path: {
+            "mode":"rw",
+            "bind" : "/data"
+        }
+    }
     container = docker_client.containers.run(
         image,
         name=name,
@@ -534,6 +538,7 @@ def visualiza_dag(
         command=command,
         network=network,
         hostname=host_name,
+        volumes=volumes
     )
     return container
 
