@@ -509,18 +509,23 @@ def visualiza_dag(
     *,
     docker_client: "DockerClient",
     network: str,
-    socket_volume: str,
-    name: str,
+    host_name: str,
     command: str,
+    depth: int,
+    directory_path: str,
     image: str = DEFAULT_CLIENT_IMAGE,
 ):
-    name = make_vdag_name(network, name)
-    volumes = {
-        socket_volume: {
-            "bind": "/opt/docker/.casperlabs/sockets",
-            "mode": "rw"
-        }
-    }
+    name = make_vdag_name(network, host_name)
+    command = " ".join([
+        host_name,
+        "vdag",
+        directory_path,
+        "--show-justification-lines",
+        "--depth",
+        depth,
+        "--out /data/sample.png",
+        "--stream multiple-outputs"
+    ])
     container = docker_client.containers.run(
         image,
         name=name,
@@ -528,10 +533,10 @@ def visualiza_dag(
         detach=True,
         command=command,
         network=network,
-        volumes=volumes,
-        hostname=name,
+        hostname=host_name,
     )
     return container
+
 
 def make_peer_name(network: str, i: Union[int, str]) -> str:
     return "peer{i}.{network}".format(i=i, network=network)
@@ -543,6 +548,7 @@ def make_engine_name(network: str, i: Union[int, str]) -> str:
 
 def make_vdag_name(network: str, i: Union[int, str]) -> str:
     return "vdag.{i}.{network}".format(i=i, network=network)
+
 
 def make_peer(
     *,
