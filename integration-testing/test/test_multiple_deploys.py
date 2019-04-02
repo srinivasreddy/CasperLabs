@@ -54,11 +54,13 @@ def test_multiple_deploys_at_once(command_line_options_fixture, docker_client_fi
                     volume_name3 = create_volume(docker_client_fixture)
                     with bootstrap_connected_peer(name='bonded-validator-3', keypair=BONDED_VALIDATOR_KEY_3, socket_volume=volume_name3, **kwargs) as no3:
                         directory_path = make_tempdir(prefix=no1.name)
+                        """
                         visualiza_dag(docker_client=docker_client_fixture,
                                       network=bootstrap_node.network,
                                       host_name=no1.name,
                                       depth=3,
                                       directory_path=directory_path)
+                        """
                         wait_for_peers_count_at_least(bootstrap_node, 3, context.node_startup_timeout)
                         deploy1 = DeployThread("node1", no1, contract_path, 1)
                         deploy1.start()
