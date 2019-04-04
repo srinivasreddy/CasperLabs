@@ -440,12 +440,13 @@ def make_bootstrap_node(
         network_name=network,
     )
     container_command_options = {
-        "--casper-validator-private-key": key_pair.private_key,
-        "--casper-has-faucet": "",
         "--server-host": name,
+        "--tls-certificate": "/root/.casperlabs/bootstrap/node.certificate.pem",
+        "--tls-key": "/root/.casperlabs/bootstrap/node.key.pem",
+        "--casper-validator-private-key": key_pair.private_key,
+        "--casper-validator-public-key": key_pair.public_key,
+        "--grpc-socket": grpc_socket_file,
         "--metrics-prometheus": "",
-        "--server-data-dir=/root/.casperlabs": "",
-        "--grpc-socket": grpc_socket_file
     }
     if cli_options is not None:
         container_command_options.update(cli_options)
@@ -571,6 +572,9 @@ def make_peer(
     name = make_peer_name(network, name)
     bootstrap_address = bootstrap.get_casperlabsnode_address()
 
+    genesis_folder = "/tmp/resources/genesis"
+    bootstrap_folder = "/tmp/resources/bootstrap_certificate"
+
     container_command_options = {
         "--server-bootstrap": bootstrap_address,
         "--casper-validator-private-key": key_pair.private_key,
@@ -579,6 +583,16 @@ def make_peer(
         "--grpc-socket": grpc_socket_file
     }
 
+    volumes = {
+        bootstrap_folder: {
+            "bind": casperlabsnode_bootstrap_folder,
+            "mode": "rw"
+        },
+        genesis_folder: {
+            "bind": casperlabsnode_genesis_folder,
+            "mode": "rw"
+        }
+    }
     container = make_node(
         docker_client=docker_client,
         name=name,
@@ -587,7 +601,7 @@ def make_peer(
         container_command='run',
         container_command_options=container_command_options,
         command_timeout=command_timeout,
-        extra_volumes={},
+        extra_volumes=volumes,
         mem_limit=mem_limit if not None else '4G',
     )
     return container
