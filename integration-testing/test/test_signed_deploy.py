@@ -2,12 +2,16 @@ import os
 
 RESOURCES_PATH="../resources/"
 
+
 def resource(file_name):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), RESOURCES_PATH, file_name)
 
+
 VALIDATOR_ID_HEX_PATH=resource("validator-id-hex")
-f = open(VALIDATOR_ID_HEX_PATH, "r")
-VALIDATOR_ID_HEX=f.read()
+
+with open(VALIDATOR_ID_HEX_PATH, "r") as fd:
+    VALIDATOR_ID_HEX = fd.read()
+
 
 def test_deploy_with_valid_signature(one_node_network_signed):
     """
