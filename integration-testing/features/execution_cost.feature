@@ -1,6 +1,6 @@
 Feature: Execution cost is charged and collected
 
-  # Not Implemented
+  # Implementation test_execution_cost.py : test_execution_cost_deduct_from_account
   Scenario: Cost of execution is deducted from the account that pays for session contract
      Given: Single Node Network exists
        And: Account exists with balance of 10
