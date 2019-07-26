@@ -32,6 +32,7 @@ def test_execution_cost_deduct_from_account(one_node_network):
     response = account_state(block_hash_acct1)
     assert response.account.nonce == 1
     block_hash = node0.deploy_and_propose(
+        from_address=account1.public_key_hex,
         session_contract="test_counterdefine.wasm",
         payment_contract="test_counterdefine.wasm",
         nonce=2,
@@ -39,7 +40,7 @@ def test_execution_cost_deduct_from_account(one_node_network):
     assert block_hash is not None
     assert (
         node0.client.get_balance(
-            account_address=account1.public_key_hex, block_hash=block_hash_acct1
+            account_address=account1.public_key_hex, block_hash=block_hash
         )
         == 10
     )
