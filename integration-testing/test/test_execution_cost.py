@@ -1,5 +1,4 @@
 from test.cl_node.client_parser import parse_show_blocks
-from test.cl_node.client_parser import parse_show_block
 from test.cl_node.docker_node import DockerNode
 from test.cl_node.casperlabs_accounts import Account
 
@@ -12,9 +11,9 @@ def test_execution_cost_deduct_from_account(one_node_network):
     node0: DockerNode = one_node_network.docker_nodes[0]
     node0.use_docker_client()
 
-    def account_state(_block_hash):
+    def account_state(_block_hash, account):
         return node0.d_client.query_state(
-            block_hash=_block_hash, key_type="address", key=node0.from_address, path=""
+            block_hash=_block_hash, key_type="address", key=account, path=""
         )
 
     account1 = Account(1)
@@ -23,13 +22,14 @@ def test_execution_cost_deduct_from_account(one_node_network):
     block_hash_acct1 = node0.transfer_to_account(
         to_account_id=1, amount=10, from_account_id="genesis"
     )
+    _ = account_state(block_hash_acct1, account1.public_key_hex)
     assert (
         node0.client.get_balance(
             account_address=account1.public_key_hex, block_hash=block_hash_acct1
         )
         == 10
     )
-    response = account_state(block_hash_acct1)
+    response = account_state(block_hash_acct1, node0.from_address)
     assert response.account.nonce == 1
     block_hash = node0.deploy_and_propose(
         from_address=account1.public_key_hex,
