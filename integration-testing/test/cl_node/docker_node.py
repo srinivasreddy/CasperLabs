@@ -321,11 +321,12 @@ class DockerNode(LoggingDockerBase):
         session_contract: str,
         payment_contract: str,
         amount: int,
-        from_account_id: Union[str, int] = "genesis",
+        from_account: Optional[Account],
     ) -> str:
         abi_json_args = json.dumps([{"u32": amount}])
+        from_account = from_account or self.genesis_account
         return self._deploy_and_propose_with_abi_args(
-            session_contract, payment_contract, Account(from_account_id), abi_json_args
+            session_contract, payment_contract, from_account, abi_json_args
         )
 
     def unbond(
@@ -333,12 +334,13 @@ class DockerNode(LoggingDockerBase):
         session_contract: str,
         payment_contract: str,
         maybe_amount: Optional[int] = None,
-        from_account_id: Union[str, int] = "genesis",
+        from_account: Optional[Account] = None,
     ) -> str:
         amount = 0 if maybe_amount is None else maybe_amount
+        from_account = from_account or self.genesis_account
         abi_json_args = json.dumps([{"u32": amount}])
         return self._deploy_and_propose_with_abi_args(
-            session_contract, payment_contract, Account(from_account_id), abi_json_args
+            session_contract, payment_contract, from_account, abi_json_args
         )
 
     def _deploy_and_propose_with_abi_args(
