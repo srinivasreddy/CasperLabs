@@ -145,7 +145,7 @@ def test_error_in_session_contract(payment_node_network):
             0
         ].summary.block_hash,
     )
-    assert genesis_balance_after_transfer < genesis_balance_after_transfer
+    assert genesis_balance > genesis_balance_after_transfer
 
 
 # The caller has not transferred enough funds to the payment purse
