@@ -36,21 +36,22 @@ def test_deduct_execution_cost_from_account(payment_node_network):
         0
     ].summary.block_hash
     deploys = node0.client.show_deploys(account1_block_hash)
-    execution_cost = deploys[0].cost
+    deploy_cost = deploys[0].cost
+    assert deploy_cost != 0
     account1_balance = node0.client.get_balance(
         account_address=account1.public_key_hex, block_hash=account1_block_hash
     )
-    assert account1_balance == 10 ** 7
+    assert account1_balance == 10 ** 8
     genesis_balance_after_transfer = node0.client.get_balance(
         account_address=GENESIS_ACCOUNT.public_key_hex,
         block_hash=parse_show_blocks(node0.d_client.show_blocks(1000))[
             0
         ].summary.block_hash,
     )
-    # assert (
-    #     genesis_balance
-    #     == genesis_balance_after_transfer + account1_balance + execution_cost
-    # )
+    assert (
+        genesis_balance
+        > genesis_balance_after_transfer + account1_balance + deploy_cost
+    )
 
 
 def test_no_min_balance_in_account(payment_node_network_no_min_balance):
@@ -115,7 +116,7 @@ def test_error_in_payment_contract(payment_node_network):
             0
         ].summary.block_hash,
     )
-    # This test case not suppose to not to transfer back the amount spent.
+    # This test case not suppose to transfer back the amount spent.
     # But it does, is this a bug?
     assert genesis_balance == genesis_balance_after_transfer
 
@@ -180,6 +181,7 @@ def test_not_enough_to_run_session(trillion_payment_node_network):
     response, deploy_hash_bytes = node0.p_client.deploy(
         from_address=account1.public_key_hex,
         payment_contract="standard_payment.wasm",
+        session_contract="transfer_to_account.wasm",
         public_key=account1.public_key_path,
         private_key=account1.private_key_path,
         gas_price=1,
