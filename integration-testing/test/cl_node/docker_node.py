@@ -205,7 +205,7 @@ class DockerNode(LoggingDockerBase):
 
     @property
     def test_account(self):
-        amount = 10 ** 6
+        amount = 10 ** 7
         return self.cl_network.test_account(self, amount)
 
     @property

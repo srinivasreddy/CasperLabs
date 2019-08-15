@@ -31,7 +31,7 @@ def test_deduct_execution_cost_from_account(payment_node_network):
     account1_balance = node0.client.get_balance(
         account_address=account1.public_key_hex, block_hash=account1_block_hash
     )
-    assert account1_balance == 10 ** 6
+    assert account1_balance == 10 ** 7
     genesis_balance_after_transfer = node0.client.get_balance(
         account_address=GENESIS_ACCOUNT.public_key_hex,
         block_hash=parse_show_blocks(node0.d_client.show_blocks(1000))[
