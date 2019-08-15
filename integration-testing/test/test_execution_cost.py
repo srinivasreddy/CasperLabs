@@ -48,7 +48,7 @@ def test_deduct_execution_cost_from_account(payment_node_network):
     )
     assert (
         genesis_balance
-        > genesis_balance_after_transfer + account1_balance + deploy_cost
+        == genesis_balance_after_transfer + account1_balance + deploy_cost * CONV_RATE
     )
 
 
@@ -114,7 +114,7 @@ def test_error_in_payment_contract(payment_node_network):
             0
         ].summary.block_hash,
     )
-    assert genesis_balance > genesis_balance_after_transfer
+    assert genesis_balance == genesis_balance_after_transfer
 
 
 def test_error_in_session_contract(payment_node_network):
@@ -145,7 +145,10 @@ def test_error_in_session_contract(payment_node_network):
             0
         ].summary.block_hash,
     )
-    assert genesis_balance > genesis_balance_after_transfer
+    assert (
+        genesis_balance
+        == genesis_balance_after_transfer + cost_of_execution * CONV_RATE
+    )
 
 
 # The caller has not transferred enough funds to the payment purse
@@ -182,7 +185,7 @@ def test_not_enough_to_run_session(trillion_payment_node_network):
         session_args=None,
         payment_args=ABI.args(
             [
-                ABI.u512(272749)
+                ABI.u512(27274)
             ]  # 272749  is a little more than payment code contract costs - 272741.
         ),
     )
@@ -200,7 +203,7 @@ def test_not_enough_to_run_session(trillion_payment_node_network):
         account_address=account1.public_key_hex,
         block_hash=latest_blocks[0].summary.block_hash,
     )
-    assert account1_balance_after_computation < transfer_amount
+    assert account1_balance_after_computation + 27274 * CONV_RATE == genesis_balance
 
 
 # The session code can result in an error.
@@ -274,7 +277,7 @@ def test_not_enough_funds_to_run_payment_code(payment_node_network):
     ].summary.block_hash
     deploys = node0.client.show_deploys(deploy_hash_bytes)
     execution_cost = deploys[0].cost
-    assert execution_cost != 0
+    assert execution_cost > 0
     account1_balance = node0.client.get_balance(
         account_address=account1.public_key_hex, block_hash=latest_block_hash
     )
@@ -282,4 +285,6 @@ def test_not_enough_funds_to_run_payment_code(payment_node_network):
     genesis_balance_after_transfer = node0.client.get_balance(
         account_address=GENESIS_ACCOUNT.public_key_hex, block_hash=latest_block_hash
     )
-    assert genesis_balance < genesis_balance_after_transfer
+    assert (
+        genesis_balance == genesis_balance_after_transfer + execution_cost * CONV_RATE
+    )
