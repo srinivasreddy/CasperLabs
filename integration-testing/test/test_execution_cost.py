@@ -2,10 +2,8 @@ import json
 from test.cl_node.client_parser import parse_show_blocks
 from test.cl_node.docker_node import DockerNode
 from test.cl_node.casperlabs_accounts import GENESIS_ACCOUNT
-from test.cl_node.common import HELLO_WORLD
 from test.cl_node.casperlabs_accounts import Account
 from test.cl_node.common import MAX_PAYMENT_COST, CONV_RATE
-from test.cl_node.errors import NonZeroExitCodeError
 
 
 def account_state(_block_hash: str, account: str, node0: DockerNode):
@@ -116,9 +114,7 @@ def test_error_in_payment_contract(payment_node_network):
             0
         ].summary.block_hash,
     )
-    # This test case not suppose to transfer back the amount spent.
-    # But it does, is this a bug?
-    assert genesis_balance == genesis_balance_after_transfer
+    assert genesis_balance > genesis_balance_after_transfer
 
 
 def test_error_in_session_contract(payment_node_network):
@@ -149,10 +145,7 @@ def test_error_in_session_contract(payment_node_network):
             0
         ].summary.block_hash,
     )
-    genesis_balance_after_transfer = genesis_balance_after_transfer
-    # TODO
-    # assert 1000000000 == 997460578
-    # assert genesis_balance == genesis_balance_after_transfer + cost_of_execution
+    assert genesis_balance_after_transfer < genesis_balance_after_transfer
 
 
 # The caller has not transferred enough funds to the payment purse
@@ -207,10 +200,7 @@ def test_not_enough_to_run_session(trillion_payment_node_network):
         account_address=account1.public_key_hex,
         block_hash=latest_blocks[0].summary.block_hash,
     )
-    # assert account1_balance_after_computation < transfer_amount
-    # TODO
-    # assert 1000000000 == 997460578
-    # assert genesis_balance == genesis_balance_after_transfer + cost_of_execution
+    assert account1_balance_after_computation < transfer_amount
 
 
 # The session code can result in an error.
@@ -245,7 +235,7 @@ def test_refund_after_session_code_error(payment_node_network):
         account_address=test_account.public_key_hex, block_hash=block_hash
     )
     # This assert is failing; And could not get lesser balance than original balance.
-    # assert later_balance < initial_balance
+    assert later_balance < initial_balance
 
 
 # The caller has not transferred enough funds to the payment purse
@@ -284,6 +274,7 @@ def test_not_enough_funds_to_run_payment_code(payment_node_network):
     ].summary.block_hash
     deploys = node0.client.show_deploys(deploy_hash_bytes)
     execution_cost = deploys[0].cost
+    assert execution_cost != 0
     account1_balance = node0.client.get_balance(
         account_address=account1.public_key_hex, block_hash=latest_block_hash
     )
@@ -291,3 +282,4 @@ def test_not_enough_funds_to_run_payment_code(payment_node_network):
     genesis_balance_after_transfer = node0.client.get_balance(
         account_address=GENESIS_ACCOUNT.public_key_hex, block_hash=latest_block_hash
     )
+    assert genesis_balance < genesis_balance_after_transfer
