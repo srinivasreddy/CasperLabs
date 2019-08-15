@@ -19,11 +19,11 @@ class DockerExecutionEngine(LoggingDockerBase):
                     "mode": "rw",
                 }
             }
-        command = (
-            self.config.is_payment_code_enabled
-            and self.EE_WITH_PAYMENT_COMMAND
-            or self.EXECUTION_ENGINE_COMMAND
-        )
+        if self.config.is_payment_code_enabled:
+            command = self.EE_WITH_PAYMENT_COMMAND
+        else:
+            command = self.EXECUTION_ENGINE_COMMAND
+
         container = self.config.docker_client.containers.run(
             self.image_name,
             name=self.container_name,
