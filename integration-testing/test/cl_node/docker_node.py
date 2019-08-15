@@ -309,7 +309,6 @@ class DockerNode(LoggingDockerBase):
             [{"account": to_account.public_key_hex}, {"u32": amount}]
         )
         ABI = self.p_client.abi
-
         response, deploy_hash_bytes = self.p_client.deploy(
             from_address=from_account.public_key_hex,
             session_contract=session_contract,
