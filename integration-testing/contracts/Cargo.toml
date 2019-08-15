@@ -30,4 +30,5 @@ members = [
     "err-standard-payment",
     "transfer_to_account",
     "err-transfer-to-account",
+    "test_args/u32_hard_code",
 ]
