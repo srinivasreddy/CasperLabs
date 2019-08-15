@@ -86,23 +86,31 @@ def test_error_in_payment_contract(payment_node_network):
         account_address=GENESIS_ACCOUNT.public_key_hex, block_hash=genesis_hash
     )
     assert genesis_balance == 10 ** 9
-    block_hash = node0.transfer_to_account(
-        1,
+
+    from_account = Account("genesis")
+    to_account = Account(1)
+    args_json = json.dumps([{"account": to_account.public_key_hex}, {"u32": 10 ** 7}])
+
+    ABI = node0.p_client.abi
+    response, deploy_hash_bytes = node0.p_client.deploy(
+        from_address=from_account.public_key_hex,
+        session_contract="transfer_to_account.wasm",
         payment_contract="err_standard_payment.wasm",
-        amount=10 ** 7,
-        is_deploy_error_check=False,
+        public_key=from_account.public_key_path,
+        private_key=from_account.private_key_path,
+        gas_price=1,
+        gas_limit=MAX_PAYMENT_COST / CONV_RATE,
+        session_args=ABI.args_from_json(args_json),
+        payment_args=ABI.args([ABI.u512(10 ** 6)]),
     )
-    deploy = node0.client.show_deploys(block_hash)[0]
-    assert deploy.is_error is True
-    assert deploy.error_message == "Insufficient payment"
-    cost_of_execution = deploy.cost
-    assert cost_of_execution == 0
     genesis_balance_after_transfer = node0.client.get_balance(
         account_address=GENESIS_ACCOUNT.public_key_hex,
         block_hash=parse_show_blocks(node0.d_client.show_blocks(1000))[
             0
         ].summary.block_hash,
     )
+    # This test case not suppose to not to transfer back the amount spent.
+    # But it does, is this a bug?
     assert genesis_balance == genesis_balance_after_transfer
 
 
@@ -125,9 +133,9 @@ def test_error_in_session_contract(payment_node_network):
     )
     deploy = node0.client.show_deploys(block_hash)[0]
     assert deploy.is_error is True
-    assert deploy.error_message == "Trap(Trap { kind: Unreachable })"
+    assert deploy.error_message == "Exit code: 1"
     cost_of_execution = deploy.cost
-    assert cost_of_execution != 0
+    assert cost_of_execution > 0
     genesis_balance_after_transfer = node0.client.get_balance(
         account_address=GENESIS_ACCOUNT.public_key_hex,
         block_hash=parse_show_blocks(node0.d_client.show_blocks(1000))[
@@ -266,7 +274,9 @@ def test_not_enough_funds_to_run_payment_code(payment_node_network):
         gas_price=1,
         gas_limit=MAX_PAYMENT_COST / CONV_RATE,
         session_args=ABI.args_from_json(args_json),
-        payment_args=ABI.args([ABI.u512(1000)]),
+        payment_args=ABI.args(
+            [ABI.u512(1000)]
+        ),  # 1000 is very low amount compared with 10**6.
     )
 
     account1_block_hash = parse_show_blocks(node0.d_client.show_blocks(1000))[

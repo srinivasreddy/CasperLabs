@@ -30,10 +30,10 @@ pub extern "C" fn call() {
     let payment_purse: PurseId =
         contract_api::call_contract(pos_contract, &(GET_PAYMENT_PURSE), &vec![]);
 
-//    if let PurseTransferResult::TransferError =
-//        contract_api::transfer_from_purse_to_purse(main_purse, payment_purse, amount)
-//    {
-//        contract_api::revert(99);
-//    }
+    if let PurseTransferResult::TransferError =
+        contract_api::transfer_from_purse_to_purse(main_purse, payment_purse, amount)
+    {
+        contract_api::revert(99);
+    }
     contract_api::revert(1);
 }
