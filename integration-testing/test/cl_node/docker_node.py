@@ -330,7 +330,7 @@ class DockerNode(LoggingDockerBase):
             # Compatibility mode with the way things worked before execution cost era
             payment_args = None
         else:
-            # NOTE: this shouldn't necesserily be amount
+            # NOTE: this shouldn't necessarily be amount
             # but this is temporary, anyway, eventually we want all tests
             # running with execution cost on.
             payment_args = ABI.args([ABI.u512(amount)])
@@ -365,12 +365,17 @@ class DockerNode(LoggingDockerBase):
         self,
         session_contract: str,
         payment_contract: str,
-        amount: int,
+        bonding_amount: int,
         from_account_id: Union[str, int] = "genesis",
+        payment_args_amount: int = 0,
     ) -> str:
-        abi_json_args = json.dumps([{"u32": amount}])
+        abi_json_args = json.dumps([{"u32": bonding_amount}])
         return self._deploy_and_propose_with_abi_args(
-            session_contract, payment_contract, Account(from_account_id), abi_json_args
+            session_contract,
+            payment_contract,
+            Account(from_account_id),
+            abi_json_args,
+            payment_args_amount=payment_args_amount,
         )
 
     def unbond(
@@ -379,11 +384,16 @@ class DockerNode(LoggingDockerBase):
         payment_contract: str,
         maybe_amount: Optional[int] = None,
         from_account_id: Union[str, int] = "genesis",
+        payment_args_amount: int = 0,
     ) -> str:
         amount = 0 if maybe_amount is None else maybe_amount
         abi_json_args = json.dumps([{"u32": amount}])
         return self._deploy_and_propose_with_abi_args(
-            session_contract, payment_contract, Account(from_account_id), abi_json_args
+            session_contract,
+            payment_contract,
+            Account(from_account_id),
+            abi_json_args,
+            payment_args_amount=payment_args_amount,
         )
 
     def _deploy_and_propose_with_abi_args(
@@ -394,9 +404,9 @@ class DockerNode(LoggingDockerBase):
         json_args: str,
         gas_limit: int = MAX_PAYMENT_COST / CONV_RATE,
         gas_price: int = 1,
+        payment_args_amount: int = 0,
     ) -> str:
-
-        # TODO: pass payment_args as well
+        ABI = self.p_client.abi
         response, deploy_hash_bytes = self.p_client.deploy(
             from_address=from_account.public_key_hex,
             session_contract=session_contract,
@@ -405,7 +415,8 @@ class DockerNode(LoggingDockerBase):
             gas_price=gas_price,
             public_key=from_account.public_key_path,
             private_key=from_account.private_key_path,
-            session_args=self.p_client.abi.args_from_json(json_args),
+            session_args=ABI.args_from_json(json_args),
+            payment_args=ABI.args([ABI.u512(payment_args_amount)]),
         )
 
         deploy_hash_hex = deploy_hash_bytes.hex()
