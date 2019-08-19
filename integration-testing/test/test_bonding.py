@@ -1,8 +1,4 @@
-from test.cl_node.common import (
-    BONDING_CONTRACT,
-    UNBONDING_CONTRACT,
-    STANDARD_PAYMENT_CONTRACT,
-)
+from test.cl_node.common import BONDING_CONTRACT, UNBONDING_CONTRACT, PAYMENT_CONTRACT
 from test.cl_node.client_parser import parse_show_block
 from test.cl_node.client_parser import parse_show_blocks
 from test.cl_node.casperlabs_network import OneNodeNetwork, PaymentNodeNetwork
@@ -313,7 +309,7 @@ def test_node_makes_a_block_after_bonding(trillion_payment_node_network):
         from_account_id="genesis",
         bonding_amount=bonding_amount,
         session_contract=BONDING_CONTRACT,
-        payment_contract=STANDARD_PAYMENT_CONTRACT,
+        payment_contract=PAYMENT_CONTRACT,
         payment_args_amount=10 ** 9,
     )
 
@@ -353,7 +349,7 @@ def test_node_makes_a_block_after_bonding(trillion_payment_node_network):
     # Unbond operation should succeed but fails with No New Deploys
     block_hash3 = node1.unbond(
         session_contract=UNBONDING_CONTRACT,
-        payment_contract=STANDARD_PAYMENT_CONTRACT,
+        payment_contract=PAYMENT_CONTRACT,
         from_account_id="genesis",
         maybe_amount=None,
         payment_args_amount=10 ** 9,
